@@ -10,7 +10,9 @@
 		04231D975EB732402BDEC70A /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16050352481A2E44A507757 /* Usage.swift */; };
 		0F08604FC06F2829D1404CE4 /* SampleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51CAFC203F3F479992876DE5 /* SampleProvider.swift */; };
 		1179AC66C96D1CDE5E377248 /* RingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D58B728C047247A9033E43D /* RingState.swift */; };
+		1C2ED769D04032E88A150703 /* deepSeek.svg in Resources */ = {isa = PBXBuildFile; fileRef = 1A54D8AD17AD34ACFDA1B74F /* deepSeek.svg */; };
 		1DE4A732E9172293D1C60F98 /* UsageOrbApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 019FD25464C6CFAB43F6D73E /* UsageOrbApp.swift */; };
+		2072ECFCD6F8B430DDF6A387 /* openRouter.svg in Resources */ = {isa = PBXBuildFile; fileRef = C01CA7F55CD9B839A5134EE0 /* openRouter.svg */; };
 		210EE9B063AA6EBE8E289C69 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B4B1B716EEC2CBB527E69D /* SettingsView.swift */; };
 		21EDF23EBFC8FC2D26FF64B2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 772E8FDC15940E51F48AC34B /* Assets.xcassets */; };
 		2B0C5C07C7EC9662E198D90F /* RingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BC9E2C8E73D9FF44333111 /* RingStateTests.swift */; };
@@ -21,8 +23,10 @@
 		4DE34E926533937C3061354F /* CodexProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B1C6549117948ACD0FBF69 /* CodexProvider.swift */; };
 		4DF71282C9899DBCCB388715 /* RingImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFB16F692B4517C5FAF1681 /* RingImage.swift */; };
 		5BBD8BAFD804F0A7590CE621 /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE50FF992356E45894A203B /* Format.swift */; };
+		7051E517E9AAD34EF72B5397 /* claudeCode.svg in Resources */ = {isa = PBXBuildFile; fileRef = ED6805273B6F0CD0DCD62A7B /* claudeCode.svg */; };
 		771C3C98A4D02B3311A672E0 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AEE4C7490C4F3376DD9A79 /* AppSettings.swift */; };
 		786CD804368E5F5385049AD0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74021DFDE435AAB1CFBEE6B5 /* Keychain.swift */; };
+		798A237A30A63FCE1B8324FD /* codex.svg in Resources */ = {isa = PBXBuildFile; fileRef = 19D4751A41965DE5D18D6FF7 /* codex.svg */; };
 		7D7FBD579D1DEBD1EF7A14C7 /* ClaudeCodeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6624D655F2F1E58B4649772 /* ClaudeCodeProvider.swift */; };
 		8A5D165EC76234EDAC14B47E /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9676CD0F8142DFF2BF4BED0F /* HistoryStore.swift */; };
 		A9690B238A59A0E17D4DBA4C /* ProviderCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C15725D50206F5F98B493F /* ProviderCard.swift */; };
@@ -45,6 +49,8 @@
 /* Begin PBXFileReference section */
 		019FD25464C6CFAB43F6D73E /* UsageOrbApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageOrbApp.swift; sourceTree = "<group>"; };
 		0E84B286F60CA5EC88E44054 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		19D4751A41965DE5D18D6FF7 /* codex.svg */ = {isa = PBXFileReference; path = codex.svg; sourceTree = "<group>"; };
+		1A54D8AD17AD34ACFDA1B74F /* deepSeek.svg */ = {isa = PBXFileReference; path = deepSeek.svg; sourceTree = "<group>"; };
 		2AA42AD17083F979068AEF28 /* APIKeyProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyProviders.swift; sourceTree = "<group>"; };
 		2CE50FF992356E45894A203B /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		4D58B728C047247A9033E43D /* RingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingState.swift; sourceTree = "<group>"; };
@@ -60,9 +66,11 @@
 		B16050352481A2E44A507757 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		BDF5FA74B34DCB8ECF01D6F4 /* HistoryLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLogTests.swift; sourceTree = "<group>"; };
 		BEDF52AA4BC089A403A21014 /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
+		C01CA7F55CD9B839A5134EE0 /* openRouter.svg */ = {isa = PBXFileReference; path = openRouter.svg; sourceTree = "<group>"; };
 		C9B1C6549117948ACD0FBF69 /* CodexProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexProvider.swift; sourceTree = "<group>"; };
 		DDFB16F692B4517C5FAF1681 /* RingImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingImage.swift; sourceTree = "<group>"; };
 		E8BC9E2C8E73D9FF44333111 /* RingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingStateTests.swift; sourceTree = "<group>"; };
+		ED6805273B6F0CD0DCD62A7B /* claudeCode.svg */ = {isa = PBXFileReference; path = claudeCode.svg; sourceTree = "<group>"; };
 		F10F40A7BFBFE638E3711D06 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F39D2448420435479F4D4BFF /* ProviderParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderParsingTests.swift; sourceTree = "<group>"; };
 		F536F18066F8843F86F80D48 /* UsageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageProvider.swift; sourceTree = "<group>"; };
@@ -78,6 +86,17 @@
 				FA648415FE8A160EBAB43327 /* UsageOrbTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		29DD05823510FED094DE3F89 /* ProviderLogos */ = {
+			isa = PBXGroup;
+			children = (
+				ED6805273B6F0CD0DCD62A7B /* claudeCode.svg */,
+				19D4751A41965DE5D18D6FF7 /* codex.svg */,
+				1A54D8AD17AD34ACFDA1B74F /* deepSeek.svg */,
+				C01CA7F55CD9B839A5134EE0 /* openRouter.svg */,
+			);
+			path = ProviderLogos;
 			sourceTree = "<group>";
 		};
 		2E859E48560A4744AD19ED08 /* App */ = {
@@ -118,6 +137,7 @@
 			children = (
 				772E8FDC15940E51F48AC34B /* Assets.xcassets */,
 				F10F40A7BFBFE638E3711D06 /* PrivacyInfo.xcprivacy */,
+				29DD05823510FED094DE3F89 /* ProviderLogos */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -273,6 +293,10 @@
 			files = (
 				21EDF23EBFC8FC2D26FF64B2 /* Assets.xcassets in Resources */,
 				EEA20510EE858677A9CEA8F9 /* PrivacyInfo.xcprivacy in Resources */,
+				7051E517E9AAD34EF72B5397 /* claudeCode.svg in Resources */,
+				798A237A30A63FCE1B8324FD /* codex.svg in Resources */,
+				1C2ED769D04032E88A150703 /* deepSeek.svg in Resources */,
+				2072ECFCD6F8B430DDF6A387 /* openRouter.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

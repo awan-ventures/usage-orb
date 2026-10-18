@@ -11,7 +11,11 @@ struct ProviderCard: View {
     var body: some View {
         let snapshot = store.snapshots[provider]
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center, spacing: 6) {
+                if let logo = provider.logo {
+                    Image(nsImage: logo).resizable().aspectRatio(contentMode: .fit).frame(width: 13, height: 13)
+                        .foregroundStyle(provider.logoColor).accessibilityHidden(true)
+                }
                 Text(provider.displayName).font(.system(size: 13, weight: .semibold))
                 Spacer()
                 if store.refreshing.contains(provider) {
@@ -103,6 +107,14 @@ private struct Bar: View {
 }
 
 extension ProviderID {
+    /// Claude and DeepSeek have coloured marks; OpenAI and OpenRouter are monochrome.
+    var logoColor: Color {
+        switch self {
+        case .claudeCode, .deepSeek: tint
+        case .codex, .openRouter: .primary
+        }
+    }
+
     /// Bar colour below the warning threshold.
     var tint: Color {
         switch self {

@@ -18,7 +18,7 @@ Early development: a working local MVP. No signed build is published yet, so bui
 
 ## The rings
 
-Each connected provider gets its own ring, with a letter inside: **C** Claude Code, **O** Codex, **R** OpenRouter. A ring shows that provider's most used quota window. ⌘-drag to reorder them.
+Each connected provider gets its own ring with the provider's logo inside (Codex uses the OpenAI mark). A ring shows that provider's most used quota window. ⌘-drag to reorder them.
 
 | Ring | Meaning |
 | --- | --- |
@@ -68,6 +68,10 @@ USAGE_ORB_SAMPLE=1 USAGE_ORB_OPEN=menu build/Build/Products/Debug/UsageOrb.app/C
 - **Dashboard** charts quota use, daily OpenRouter spend and balances over a day to 90 days, from history kept on your Mac.
 
 Failures back off (up to 8× the refresh interval) and the last good reading stays visible.
+
+## Logos
+
+Provider logos come from [Simple Icons](https://simpleicons.org) (CC0). They are trademarks of Anthropic, OpenAI, DeepSeek and OpenRouter, used only to identify each service. Usage Orb is not affiliated with or endorsed by any of them.
 
 ## Prior art
 

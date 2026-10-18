@@ -14,16 +14,6 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
-    /// Drawn inside the provider's menu bar ring.
-    var monogram: String {
-        switch self {
-        case .claudeCode: "C"
-        case .codex: "O"
-        case .deepSeek: "D"
-        case .openRouter: "R"
-        }
-    }
-
     /// Providers that authenticate with an API key the user pastes into Settings.
     var usesAPIKey: Bool { self == .deepSeek || self == .openRouter }
 

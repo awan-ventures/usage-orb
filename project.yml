@@ -21,6 +21,8 @@ targets:
       - Sources/UsageOrb
       - Resources/Assets.xcassets
       - Resources/PrivacyInfo.xcprivacy
+      - path: Resources/ProviderLogos
+        excludes: ["README.md"]
     info:
       path: Resources/Info.plist
       properties:

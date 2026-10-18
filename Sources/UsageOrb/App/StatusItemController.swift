@@ -54,14 +54,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private func render(_ item: NSStatusItem, provider: ProviderID?) {
         guard let button = item.button else { return }
         guard let provider else {
-            button.image = RingImage.image(for: .unknown(reason: ""), monogram: "")
+            button.image = RingImage.image(for: .unknown(reason: ""), provider: nil)
             button.title = ""
             button.setAccessibilityLabel("Usage Orb")
             button.toolTip = "Usage Orb: connect a provider"
             return
         }
         let ring = store.ring(for: provider)
-        button.image = RingImage.image(for: ring, monogram: provider.monogram)
+        button.image = RingImage.image(for: ring, provider: provider)
         button.title = settings.showPercentInMenuBar ? ring.percent.map { " " + Format.percent($0) } ?? "" : ""
         button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .medium)
         button.toolTip = ring.accessibilityDescription(for: provider)
