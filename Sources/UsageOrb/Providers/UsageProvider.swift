@@ -21,7 +21,7 @@ enum HTTP {
     static func getJSON(_ url: URL, headers: [String: String], service: String) async throws -> [String: Any] {
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("UsageOrb/0.1 (+https://github.com/awan-ventures/usage-orb)", forHTTPHeaderField: "User-Agent")
+        request.setValue("UsageOrb/0.1 (+https://github.com/madebyawan/usage-orb)", forHTTPHeaderField: "User-Agent")
         for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
 
         let data: Data
