@@ -8,7 +8,6 @@ final class AppSettings: ObservableObject {
 
     @Published var enabled: Set<ProviderID> { didSet { defaults.set(enabled.map(\.rawValue), forKey: "enabledProviders") } }
     @Published var refreshMinutes: Int { didSet { defaults.set(refreshMinutes, forKey: "refreshMinutes") } }
-    @Published var pinnedWindowID: String? { didSet { defaults.set(pinnedWindowID, forKey: "pinnedWindowID") } }
     @Published var warningPercent: Double { didSet { defaults.set(warningPercent, forKey: "warningPercent") } }
     @Published var criticalPercent: Double { didSet { defaults.set(criticalPercent, forKey: "criticalPercent") } }
     @Published var showPercentInMenuBar: Bool { didSet { defaults.set(showPercentInMenuBar, forKey: "showPercentInMenuBar") } }
@@ -24,13 +23,11 @@ final class AppSettings: ObservableObject {
         let stored = defaults.stringArray(forKey: "enabledProviders") ?? fallback.map(\.rawValue)
         enabled = Set(stored.compactMap(ProviderID.init(rawValue:)))
         refreshMinutes = defaults.object(forKey: "refreshMinutes") as? Int ?? 5
-        pinnedWindowID = defaults.string(forKey: "pinnedWindowID")
         warningPercent = defaults.object(forKey: "warningPercent") as? Double ?? 70
         criticalPercent = defaults.object(forKey: "criticalPercent") as? Double ?? 90
         showPercentInMenuBar = defaults.bool(forKey: "showPercentInMenuBar")
     }
 
-    var ringMode: RingMode { pinnedWindowID.map(RingMode.pinned) ?? .mostUrgent }
     var thresholds: RingThresholds { .init(warning: warningPercent, critical: max(criticalPercent, warningPercent)) }
     var refreshInterval: TimeInterval { TimeInterval(refreshMinutes * 60) }
 

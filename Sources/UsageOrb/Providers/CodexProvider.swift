@@ -87,7 +87,7 @@ struct CodexProvider: UsageProvider {
 
     static func windowName(minutes: Double?, slot: String) -> String {
         switch minutes.map({ Int($0) }) {
-        case 300: return "Session (5 h)"
+        case 300: return "Session"
         case 10_080: return "Weekly"
         case let value? where value % 1440 == 0: return "\(value / 1440)-day window"
         case let value? where value % 60 == 0: return "\(value / 60)-hour window"

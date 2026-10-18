@@ -2,11 +2,11 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// Owns the menu bar ring: left click opens the popover, right click opens a small menu.
+/// One menu bar ring per provider. Clicking any ring opens the same native menu, so it gets the system's
+/// menu material (and Liquid Glass on macOS 26) for free.
 @MainActor
-final class StatusItemController: NSObject {
-    private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let popover = NSPopover()
+final class StatusItemController: NSObject, NSMenuDelegate {
+    private var items: [String: NSStatusItem] = [:]
     private let store: UsageStore
     private let settings: AppSettings
     private let windows: WindowPresenter
@@ -17,22 +17,6 @@ final class StatusItemController: NSObject {
         self.settings = settings
         self.windows = windows
         super.init()
-
-        let content = PopoverView(openDashboard: { [weak self] in self?.popover.close(); windows.showDashboard() },
-                                  openSettings: { [weak self] in self?.popover.close(); windows.showSettings() })
-            .environmentObject(store)
-            .environmentObject(settings)
-        let host = NSHostingController(rootView: content)
-        host.sizingOptions = .preferredContentSize
-        popover.contentViewController = host
-        popover.behavior = .transient
-
-        if let button = item.button {
-            button.target = self
-            button.action = #selector(clicked)
-            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.imagePosition = .imageLeading
-        }
         // Coalesce bursts of changes into one redraw.
         store.objectWillChange.merge(with: settings.objectWillChange)
             .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
@@ -42,44 +26,107 @@ final class StatusItemController: NSObject {
     }
 
     private func update() {
-        guard let button = item.button else { return }
-        let ring = store.ring
-        button.image = RingImage.image(for: ring)
-        button.title = settings.showPercentInMenuBar ? ring.percent.map { " " + Format.percent($0) } ?? "" : ""
-        button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .medium)
-        button.toolTip = ring.accessibilityDescription
-        button.setAccessibilityLabel("Usage Orb")
-        button.setAccessibilityValue(ring.accessibilityDescription)
-    }
-
-    @objc private func clicked() {
-        guard item.button != nil else { return }
-        if NSApp.currentEvent?.type == .rightMouseUp {
-            showMenu()
-        } else if popover.isShown {
-            popover.performClose(nil)
-        } else {
-            showPopover()
+        // With no ring providers, one plain ring keeps the app reachable.
+        let wanted: [ProviderID?] = store.ringProviders.isEmpty ? [nil] : store.ringProviders
+        let keys = wanted.map { $0?.rawValue ?? "app" }
+        for (key, item) in items where !keys.contains(key) {
+            NSStatusBar.system.removeStatusItem(item)
+            items[key] = nil
+        }
+        // macOS remembers each ring's position; people can ⌘-drag to reorder them.
+        for (key, provider) in zip(keys, wanted) {
+            let item = items[key] ?? makeItem(key: key)
+            items[key] = item
+            render(item, provider: provider)
         }
     }
 
-    func showPopover() {
+    private func makeItem(key: String) -> NSStatusItem {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        item.autosaveName = "UsageOrb.\(key)"
+        item.button?.imagePosition = .imageLeading
+        let menu = NSMenu()
+        menu.delegate = self
+        item.menu = menu
+        return item
+    }
+
+    private func render(_ item: NSStatusItem, provider: ProviderID?) {
         guard let button = item.button else { return }
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        popover.contentViewController?.view.window?.makeKey()
+        guard let provider else {
+            button.image = RingImage.image(for: .unknown(reason: ""), monogram: "")
+            button.title = ""
+            button.setAccessibilityLabel("Usage Orb")
+            button.toolTip = "Usage Orb: connect a provider"
+            return
+        }
+        let ring = store.ring(for: provider)
+        button.image = RingImage.image(for: ring, monogram: provider.monogram)
+        button.title = settings.showPercentInMenuBar ? ring.percent.map { " " + Format.percent($0) } ?? "" : ""
+        button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .medium)
+        button.toolTip = ring.accessibilityDescription(for: provider)
+        button.setAccessibilityLabel("Usage Orb, \(provider.displayName)")
+        button.setAccessibilityValue(ring.accessibilityDescription(for: provider))
+    }
+
+    /// For screenshots and UI work (`USAGE_ORB_OPEN=menu`).
+    func openMenu() {
+        items.values.first?.button?.performClick(nil)
+    }
+
+    // MARK: Menu
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        let enabled = ProviderID.allCases.filter(settings.enabled.contains)
+        for (index, provider) in enabled.enumerated() {
+            if index > 0 { menu.addItem(.separator()) }
+            menu.addItem(cardItem(provider))
+        }
+        if !enabled.isEmpty { menu.addItem(.separator()) }
+
+        let available = ProviderID.allCases.filter { !settings.enabled.contains($0) }
+        if !available.isEmpty {
+            let add = NSMenu()
+            for provider in available {
+                let needsKey = provider.usesAPIKey && Keychain.apiKey(for: provider) == nil
+                let entry = add.addItem(withTitle: provider.displayName + (needsKey ? "…" : ""),
+                                        action: #selector(addProvider(_:)), keyEquivalent: "")
+                entry.target = self
+                entry.representedObject = provider.rawValue
+                if provider == .claudeCode { entry.toolTip = "macOS will ask to let Usage Orb read Claude Code's sign-in." }
+            }
+            menu.addItem(withTitle: "Add Provider", action: nil, keyEquivalent: "").submenu = add
+        }
+        add(menu, "Refresh", #selector(refresh), "r")
+        add(menu, "Dashboard", #selector(dashboard), "d")
+        add(menu, "Settings…", #selector(openSettings), ",")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Quit Usage Orb", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+
         Task { await store.refreshDue(force: false) }
     }
 
-    private func showMenu() {
-        let menu = NSMenu()
-        menu.addItem(withTitle: "Refresh Now", action: #selector(refresh), keyEquivalent: "r").target = self
-        menu.addItem(withTitle: "Dashboard", action: #selector(dashboard), keyEquivalent: "d").target = self
-        menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",").target = self
-        menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Usage Orb", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        item.menu = menu
-        item.button?.performClick(nil)
-        item.menu = nil
+    private func cardItem(_ provider: ProviderID) -> NSMenuItem {
+        let host = NSHostingView(rootView: ProviderCard(provider: provider)
+            .environmentObject(store).environmentObject(settings))
+        host.frame.size = NSSize(width: ProviderCard.width, height: host.fittingSize.height)
+        let item = NSMenuItem()
+        item.view = host
+        return item
+    }
+
+    private func add(_ menu: NSMenu, _ title: String, _ action: Selector, _ key: String) {
+        menu.addItem(withTitle: title, action: action, keyEquivalent: key).target = self
+    }
+
+    @objc private func addProvider(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let provider = ProviderID(rawValue: raw) else { return }
+        if provider.usesAPIKey && Keychain.apiKey(for: provider) == nil {
+            windows.showSettings()
+        } else {
+            settings.setEnabled(provider, true)
+        }
     }
 
     @objc private func refresh() { Task { await store.refreshAll() } }
@@ -107,7 +154,7 @@ final class WindowPresenter {
     }
 
     func showSettings() {
-        settingsWindow = present(settingsWindow, title: "Usage Orb Settings", autosave: "Settings", resizable: false) {
+        settingsWindow = present(settingsWindow, title: "Settings", autosave: "Settings", resizable: false) {
             SettingsView()
         }
     }

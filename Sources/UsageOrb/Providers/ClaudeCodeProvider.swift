@@ -67,9 +67,9 @@ struct ClaudeCodeProvider: UsageProvider {
                 }
             }
         } else {
-            let flat = [("five_hour", "session", "Session (5 h)"), ("seven_day", "weekly_all", "Weekly, all models"),
-                        ("seven_day_opus", "weekly_scoped.opus", "Weekly, Opus"),
-                        ("seven_day_sonnet", "weekly_scoped.sonnet", "Weekly, Sonnet")]
+            let flat = [("five_hour", "session", "Session"), ("seven_day", "weekly_all", "Weekly"),
+                        ("seven_day_opus", "weekly_scoped.opus", "Weekly · Opus"),
+                        ("seven_day_sonnet", "weekly_scoped.sonnet", "Weekly · Sonnet")]
             for (field, key, name) in flat {
                 guard let entry = object[field] as? [String: Any] else { continue }
                 if let item = window(key: key, name: name, percent: entry["utilization"], resets: entry["resets_at"]) {
@@ -95,9 +95,9 @@ struct ClaudeCodeProvider: UsageProvider {
 
     static func limitName(kind: String, scope: String?) -> String {
         switch kind {
-        case "session": return "Session (5 h)"
-        case "weekly_all": return "Weekly, all models"
-        case "weekly_scoped": return "Weekly, \(scope ?? "one model")"
+        case "session": return "Session"
+        case "weekly_all": return "Weekly"
+        case "weekly_scoped": return "Weekly · \(scope ?? "one model")"
         default:
             let words = kind.replacingOccurrences(of: "_", with: " ")
             return words.prefix(1).uppercased() + words.dropFirst() + (scope.map { ", \($0)" } ?? "")

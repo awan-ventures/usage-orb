@@ -1,12 +1,5 @@
 import Foundation
 
-enum RingMode: Codable, Hashable, Sendable {
-    /// The highest percentage among fresh, enabled quota windows.
-    case mostUrgent
-    /// One chosen window, by `QuotaWindow.id`.
-    case pinned(String)
-}
-
 enum RingLevel: Sendable { case normal, warning, critical }
 
 struct RingThresholds: Equatable, Sendable {
@@ -20,7 +13,7 @@ struct RingThresholds: Equatable, Sendable {
     }
 }
 
-/// What the menu bar ring shows. Computed from snapshots and never stored.
+/// What one provider's menu bar ring shows: its most used quota window. Computed, never stored.
 enum RingState: Equatable, Sendable {
     case unknown(reason: String)
     case value(percent: Double, level: RingLevel, window: QuotaWindow, isStale: Bool)
@@ -33,45 +26,31 @@ enum RingState: Equatable, Sendable {
         }
     }
 
-    static func compute(windows: [QuotaWindow], mode: RingMode, thresholds: RingThresholds,
+    static func isStale(_ window: QuotaWindow, refreshInterval: TimeInterval, now: Date) -> Bool {
+        now.timeIntervalSince(window.observedAt) > staleAfter(window.source, refreshInterval: refreshInterval)
+    }
+
+    static func compute(windows: [QuotaWindow], thresholds: RingThresholds,
                         refreshInterval: TimeInterval, now: Date) -> RingState {
         // A window whose reset time has passed no longer describes current usage.
         let current = windows.filter { ($0.resetsAt ?? .distantFuture) > now }
-        func isStale(_ window: QuotaWindow) -> Bool {
-            now.timeIntervalSince(window.observedAt) > staleAfter(window.source, refreshInterval: refreshInterval)
+        let fresh = current.filter { !isStale($0, refreshInterval: refreshInterval, now: now) }
+        let pool = fresh.isEmpty ? current : fresh
+        guard let top = pool.max(by: { $0.usedPercent < $1.usedPercent }) else {
+            return .unknown(reason: windows.isEmpty ? "Not measured yet" : "Reset since last measured")
         }
-        func state(_ window: QuotaWindow) -> RingState {
-            .value(percent: window.usedPercent, level: thresholds.level(for: window.usedPercent),
-                   window: window, isStale: isStale(window))
-        }
-
-        switch mode {
-        case .pinned(let id):
-            if let window = current.first(where: { $0.id == id }) { return state(window) }
-            if windows.contains(where: { $0.id == id }) {
-                return .unknown(reason: "The pinned window has reset since it was last measured")
-            }
-            return .unknown(reason: "The pinned window isn't available")
-        case .mostUrgent:
-            let fresh = current.filter { !isStale($0) }
-            let pool = fresh.isEmpty ? current : fresh
-            guard let top = pool.max(by: { $0.usedPercent < $1.usedPercent }) else {
-                return .unknown(reason: windows.isEmpty
-                                ? "No subscription quota is measured yet"
-                                : "Every measured window has reset since it was last seen")
-            }
-            return state(top)
-        }
+        return .value(percent: top.usedPercent, level: thresholds.level(for: top.usedPercent), window: top,
+                      isStale: isStale(top, refreshInterval: refreshInterval, now: now))
     }
-}
 
-extension RingState {
-    var accessibilityDescription: String {
+    var percent: Double? { if case .value(let percent, _, _, _) = self { percent } else { nil } }
+
+    func accessibilityDescription(for provider: ProviderID) -> String {
         switch self {
         case .unknown(let reason):
-            return "Usage unknown. \(reason)."
+            return "\(provider.displayName): usage unknown. \(reason)."
         case .value(let percent, _, let window, let isStale):
-            var text = "\(window.provider.displayName) \(window.name): \(Format.percent(percent)) used"
+            var text = "\(provider.displayName) \(window.name): \(Format.percent(percent)) used"
             if let reset = window.resetsAt { text += ", resets \(Format.countdown(to: reset))" }
             text += isStale ? ". Last measured \(Format.relative(window.observedAt)), may be out of date."
                             : ". Updated \(Format.relative(window.observedAt))."

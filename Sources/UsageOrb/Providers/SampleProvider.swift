@@ -24,18 +24,21 @@ struct SampleProvider: UsageProvider {
         var snapshot = ProviderSnapshot(provider: id, fetchedAt: now)
         switch id {
         case .claudeCode:
-            snapshot.windows = [window("session", "Session (5 h)", 42, resetsIn: 2.6),
-                                window("weekly_all", "Weekly, all models", 74, resetsIn: 61)]
+            snapshot.windows = [window("session", "Session", 42, resetsIn: 2.6),
+                                window("weekly_all", "Weekly", 74, resetsIn: 61)]
         case .codex:
-            snapshot.windows = [window("300", "Session (5 h)", 18, resetsIn: 3.9),
-                                window("10080", "Weekly", 33, resetsIn: 98)]
+            snapshot.windows = [window("300", "Session", 18, resetsIn: 3.9),
+                                window("10080", "Weekly", 93, resetsIn: 98)]
             snapshot.notes = ["Plan: Plus"]
         case .deepSeek:
             snapshot.money = [money("balance.USD", "Balance", .balance, 8.42)]
         case .openRouter:
-            snapshot.money = [money("spendDaily", "Spend today (UTC)", .spend, 0.37),
-                              money("spendMonthly", "Spend this month (UTC)", .spend, 11.80),
-                              money("limitRemaining", "Left of $25 key limit", .remainingLimit, 13.20)]
+            var limit = window("keyLimit", "Key limit", 47, resetsIn: 0)
+            limit.resetsAt = nil
+            limit.detail = "$13.20 of $25.00 left, resets monthly"
+            snapshot.windows = [limit]
+            snapshot.money = [money("spendDaily", "Spent today", .spend, 0.37),
+                              money("spendMonthly", "Spent this month", .spend, 11.80)]
         }
         return snapshot
     }
@@ -46,12 +49,12 @@ struct SampleProvider: UsageProvider {
         for hour in stride(from: 14 * 24, through: 0, by: -3) {
             let date = now.addingTimeInterval(Double(-hour) * 3600)
             let wave = sin(Double(hour) / 9) * 0.5 + 0.5
-            samples.append(.init(date: date, series: "claudeCode.weekly_all", label: "Claude Code · Weekly, all models",
+            samples.append(.init(date: date, series: "claudeCode.weekly_all", label: "Claude Code · Weekly",
                                  kind: .quotaPercent, value: Double((14 * 24 - hour) % (7 * 24)) / 1.8, unit: "%"))
-            samples.append(.init(date: date, series: "codex.300", label: "Codex · Session (5 h)",
+            samples.append(.init(date: date, series: "codex.300", label: "Codex · Session",
                                  kind: .quotaPercent, value: wave * 60, unit: "%"))
             if hour % 24 == 0 {
-                samples.append(.init(date: date, series: "openRouter.spendDaily", label: "OpenRouter · Spend today (UTC)",
+                samples.append(.init(date: date, series: "openRouter.spendDaily", label: "OpenRouter",
                                      kind: .dailySpend, value: 0.2 + wave * 1.4, unit: "USD"))
             }
         }

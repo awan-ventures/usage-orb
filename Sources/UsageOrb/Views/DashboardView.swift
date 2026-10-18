@@ -1,3 +1,4 @@
+import AppKit
 import Charts
 import SwiftUI
 
@@ -6,7 +7,7 @@ struct DashboardView: View {
     @EnvironmentObject private var store: UsageStore
 
     enum Period: String, CaseIterable, Identifiable {
-        case day = "24 hours", week = "7 days", month = "30 days", quarter = "90 days"
+        case day = "Day", week = "Week", month = "Month", quarter = "90 Days"
         var id: String { rawValue }
         var seconds: TimeInterval {
             switch self {
@@ -22,29 +23,21 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                HStack {
-                    Text("Usage history").font(.title2.weight(.semibold))
-                    Spacer()
-                    Picker("Period", selection: $period) {
-                        ForEach(Period.allCases) { Text($0.rawValue).tag($0) }
-                    }
-                    .pickerStyle(.segmented).labelsHidden().frame(width: 320)
+            VStack(alignment: .leading, spacing: 16) {
+                Picker("Period", selection: $period) {
+                    ForEach(Period.allCases) { Text($0.rawValue).tag($0) }
                 }
-                if store.usesSampleData {
-                    Label("Sample data. No accounts are read.", systemImage: "flask").foregroundStyle(.secondary)
-                }
-                section("Subscription quota used",
-                        note: "As reported by each provider when Usage Orb checked. Gaps mean nothing was measured.") { quotaChart }
-                section("Daily API spend",
-                        note: "Spend reported by the provider for each UTC day (OpenRouter). Not an estimate from token counts.") { spendChart }
-                section("Balances",
-                        note: "Prepaid balances as reported. A drop can be spend or an expired grant; it isn't shown as spend.") { balanceChart }
-                section("Now", note: nil) { CurrentTable() }
+                .pickerStyle(.segmented).labelsHidden()
+                .frame(maxWidth: 320).frame(maxWidth: .infinity)
+
+                card("Quota used", note: "Solid: weekly · Dashed: session") { quotaChart }
+                card("Daily spend") { spendChart }
+                card("Balance") { balanceChart }
             }
-            .padding(24)
+            .padding(20)
         }
-        .frame(minWidth: 620, minHeight: 520)
+        .frame(minWidth: 560, minHeight: 480)
+        .background(VisualEffect().ignoresSafeArea())
     }
 
     private func samples(_ kind: HistorySample.Kind) -> [HistorySample] {
@@ -52,22 +45,49 @@ struct DashboardView: View {
         return store.history.samples.filter { $0.kind == kind && $0.date >= start }
     }
 
+    private func card<Content: View>(_ title: String, note: String? = nil,
+                                     @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title).font(.system(size: 13, weight: .semibold))
+                Spacer()
+                if let note { Text(note).font(.system(size: 11)).foregroundStyle(.secondary) }
+            }
+            content()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.primary.opacity(0.08)))
+    }
+
+    private var empty: some View {
+        Text("Nothing recorded yet").font(.callout).foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, minHeight: 60)
+    }
+
     @ViewBuilder private var quotaChart: some View {
         let quota = samples(.quotaPercent)
+        let present = ProviderID.allCases.filter { id in quota.contains { $0.providerName == id.displayName } }
         if quota.isEmpty { empty } else {
             Chart(quota, id: \.self) { sample in
-                LineMark(x: .value("Time", sample.date), y: .value("Used", sample.value))
-                    .foregroundStyle(by: .value("Window", sample.label))
-                    .interpolationMethod(.stepEnd)
+                LineMark(x: .value("Time", sample.date), y: .value("Used", sample.value),
+                         series: .value("Series", sample.series))
+                    .foregroundStyle(by: .value("Provider", sample.providerName))
+                    .lineStyle(sample.series.hasSuffix("session") || sample.series.hasSuffix(".300")
+                               ? StrokeStyle(lineWidth: 1.5, dash: [4, 3]) : StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.monotone)
             }
+            .chartForegroundStyleScale(domain: present.map(\.displayName), range: present.map(\.tint))
             .chartYScale(domain: 0...100)
             .chartYAxis {
-                AxisMarks { value in
+                AxisMarks(values: [0, 50, 100]) { value in
                     AxisGridLine()
                     AxisValueLabel { Text("\(Int(value.as(Double.self) ?? 0))%") }
                 }
             }
-            .frame(height: 220)
+            .chartLegend(position: .bottom, alignment: .leading)
+            .frame(height: 200)
         }
     }
 
@@ -76,15 +96,17 @@ struct DashboardView: View {
         if spend.isEmpty { empty } else {
             Chart(spend, id: \.self) { sample in
                 BarMark(x: .value("Day", sample.date, unit: .day), y: .value("Spend", sample.value))
-                    .foregroundStyle(by: .value("Provider", sample.label))
+                    .foregroundStyle(ProviderID.openRouter.tint)
+                    .cornerRadius(3)
             }
             .chartYAxis {
-                AxisMarks { value in
+                AxisMarks(values: .automatic(desiredCount: 3)) { value in
                     AxisGridLine()
                     AxisValueLabel { Text(Format.money(value.as(Double.self) ?? 0, currency: "USD")) }
                 }
             }
-            .frame(height: 180)
+            .chartLegend(.hidden)
+            .frame(height: 140)
         }
     }
 
@@ -92,53 +114,31 @@ struct DashboardView: View {
         let balances = samples(.balance)
         if balances.isEmpty { empty } else {
             Chart(balances, id: \.self) { sample in
-                LineMark(x: .value("Time", sample.date), y: .value("Balance", sample.value))
-                    .foregroundStyle(by: .value("Balance", "\(sample.label) (\(sample.unit))"))
+                LineMark(x: .value("Time", sample.date), y: .value("Balance", sample.value),
+                         series: .value("Series", sample.series))
+                    .foregroundStyle(by: .value("Provider", "\(sample.providerName) (\(sample.unit))"))
             }
-            .frame(height: 160)
-        }
-    }
-
-    private var empty: some View {
-        Text("Nothing recorded in this period yet.").foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, minHeight: 80)
-    }
-
-    private func section<Content: View>(_ title: String, note: String?, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.headline)
-            if let note { Text(note).font(.caption).foregroundStyle(.secondary) }
-            content()
+            .chartLegend(position: .bottom, alignment: .leading)
+            .frame(height: 120)
         }
     }
 }
 
-private struct CurrentTable: View {
-    @EnvironmentObject private var store: UsageStore
+extension HistorySample {
+    var providerName: String {
+        ProviderID(rawValue: String(series.prefix { $0 != "." }))?.displayName ?? label
+    }
+}
 
-    struct Row: Identifiable {
-        var id: String
-        var provider: String
-        var name: String
-        var value: String
-        var source: String
-        var observed: Date
+/// The translucent window background.
+private struct VisualEffect: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .underWindowBackground
+        view.blendingMode = .behindWindow
+        view.state = .followsWindowActiveState
+        return view
     }
 
-    var body: some View {
-        let rows = store.enabledSnapshots.flatMap { snapshot in
-            snapshot.windows.map { Row(id: $0.id, provider: $0.provider.displayName, name: $0.name,
-                                       value: "\(Format.percent($0.usedPercent)) used", source: $0.source.label, observed: $0.observedAt) }
-            + snapshot.money.map { Row(id: $0.id, provider: $0.provider.displayName, name: $0.name,
-                                       value: Format.money($0.amount, currency: $0.currency), source: $0.source.label, observed: $0.observedAt) }
-        }
-        Table(rows) {
-            TableColumn("Provider", value: \.provider)
-            TableColumn("Measure", value: \.name)
-            TableColumn("Value", value: \.value)
-            TableColumn("Source", value: \.source)
-            TableColumn("Measured") { Text(Format.relative($0.observed, now: store.now)) }
-        }
-        .frame(minHeight: 160)
-    }
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }

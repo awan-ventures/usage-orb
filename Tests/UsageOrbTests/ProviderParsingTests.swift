@@ -20,7 +20,7 @@ final class ProviderParsingTests: XCTestCase {
         """)
         let snapshot = try ClaudeCodeProvider.parse(object, now: now)
         XCTAssertEqual(snapshot.windows.map(\.id), ["claudeCode.session", "claudeCode.weekly_all", "claudeCode.weekly_scoped.opus"])
-        XCTAssertEqual(snapshot.windows.map(\.name), ["Session (5 h)", "Weekly, all models", "Weekly, Opus"])
+        XCTAssertEqual(snapshot.windows.map(\.name), ["Session", "Weekly", "Weekly · Opus"])
         XCTAssertEqual(snapshot.windows.map(\.usedPercent), [7, 21, 3])
         XCTAssertEqual(snapshot.windows[1].resetsAt, ISO8601DateFormatter().date(from: "2026-10-24T03:59:59Z"))
         XCTAssertNotNil(snapshot.windows[0].resetsAt)
@@ -54,7 +54,7 @@ final class ProviderParsingTests: XCTestCase {
         """
         let snapshot = CodexProvider.parseLog(log, fileDate: now, now: now)
         XCTAssertEqual(snapshot?.windows.map(\.id), ["codex.300", "codex.10080"])
-        XCTAssertEqual(snapshot?.windows.map(\.name), ["Session (5 h)", "Weekly"])
+        XCTAssertEqual(snapshot?.windows.map(\.name), ["Session", "Weekly"])
         XCTAssertEqual(snapshot?.windows.map(\.usedPercent), [12.5, 40])
         XCTAssertEqual(snapshot?.windows.first?.resetsAt, Date(timeIntervalSince1970: 1_792_010_000))
         XCTAssertEqual(snapshot?.windows.first?.observedAt, ISO8601DateFormatter().date(from: "2026-10-18T12:00:00Z"))
@@ -75,7 +75,7 @@ final class ProviderParsingTests: XCTestCase {
                                             fileDate: now, now: now))
     }
 
-    func testCodexReadsNewestFileTail() throws {
+    func testCodexReadsNewestFileTail() async throws {
         let home = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let day = home.appendingPathComponent("sessions/2026/10/18")
         try FileManager.default.createDirectory(at: day, withIntermediateDirectories: true)
@@ -89,15 +89,9 @@ final class ProviderParsingTests: XCTestCase {
         try FileManager.default.setAttributes([.modificationDate: now.addingTimeInterval(-3600)], ofItemAtPath: old.path)
         try FileManager.default.setAttributes([.modificationDate: now], ofItemAtPath: new.path)
 
-        let expectation = expectation(description: "fetch")
-        var result: ProviderSnapshot?
-        Task {
-            result = try? await CodexProvider(home: home).fetch(now: now)
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 5)
-        XCTAssertEqual(result?.windows.first?.usedPercent, 15)
-        XCTAssertEqual(result?.windows.first?.observedAt, now, "falls back to the file's modification time")
+        let result = try await CodexProvider(home: home).fetch(now: now)
+        XCTAssertEqual(result.windows.first?.usedPercent, 15)
+        XCTAssertEqual(result.windows.first?.observedAt, now, "falls back to the file's modification time")
     }
 
     func testDeepSeekBalance() throws {
@@ -116,14 +110,16 @@ final class ProviderParsingTests: XCTestCase {
         let unlimited = try OpenRouterProvider.parse(try json("""
         {"data": {"label": "k", "limit": null, "limit_remaining": null, "usage": 25.5, "usage_daily": 0.25, "usage_weekly": 3, "usage_monthly": 9.75}}
         """), now: now)
-        XCTAssertEqual(unlimited.money.map(\.id), ["openRouter.spendDaily", "openRouter.spendWeekly", "openRouter.spendMonthly", "openRouter.spendTotal"])
+        XCTAssertEqual(unlimited.money.map(\.id), ["openRouter.spendDaily", "openRouter.spendMonthly"])
         XCTAssertTrue(unlimited.windows.isEmpty)
 
         let limited = try OpenRouterProvider.parse(try json("""
         {"data": {"limit": 50, "limit_remaining": 12.5, "limit_reset": "monthly", "usage": 37.5}}
         """), now: now)
-        let remaining = try XCTUnwrap(limited.money.first { $0.kind == .remainingLimit })
-        XCTAssertEqual(remaining.amount, 12.5)
-        XCTAssertEqual(remaining.name, "Left of $50 key limit (resets monthly)")
+        let limit = try XCTUnwrap(limited.windows.first)
+        XCTAssertEqual(limit.id, "openRouter.keyLimit")
+        XCTAssertEqual(limit.usedPercent, 75)
+        XCTAssertNil(limit.resetsAt)
+        XCTAssertTrue(limit.detail?.contains("resets monthly") == true)
     }
 }

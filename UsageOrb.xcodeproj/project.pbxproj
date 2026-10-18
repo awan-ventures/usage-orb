@@ -10,7 +10,6 @@
 		04231D975EB732402BDEC70A /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16050352481A2E44A507757 /* Usage.swift */; };
 		0F08604FC06F2829D1404CE4 /* SampleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51CAFC203F3F479992876DE5 /* SampleProvider.swift */; };
 		1179AC66C96D1CDE5E377248 /* RingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D58B728C047247A9033E43D /* RingState.swift */; };
-		15C4CA6646EFE3E749F61DBB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192F7DDEA9F259F0CFDD2308 /* PopoverView.swift */; };
 		1DE4A732E9172293D1C60F98 /* UsageOrbApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 019FD25464C6CFAB43F6D73E /* UsageOrbApp.swift */; };
 		210EE9B063AA6EBE8E289C69 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B4B1B716EEC2CBB527E69D /* SettingsView.swift */; };
 		21EDF23EBFC8FC2D26FF64B2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 772E8FDC15940E51F48AC34B /* Assets.xcassets */; };
@@ -26,6 +25,7 @@
 		786CD804368E5F5385049AD0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74021DFDE435AAB1CFBEE6B5 /* Keychain.swift */; };
 		7D7FBD579D1DEBD1EF7A14C7 /* ClaudeCodeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6624D655F2F1E58B4649772 /* ClaudeCodeProvider.swift */; };
 		8A5D165EC76234EDAC14B47E /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9676CD0F8142DFF2BF4BED0F /* HistoryStore.swift */; };
+		A9690B238A59A0E17D4DBA4C /* ProviderCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C15725D50206F5F98B493F /* ProviderCard.swift */; };
 		EA5DF42F7F50C7A85F8EC807 /* HistoryLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF5FA74B34DCB8ECF01D6F4 /* HistoryLogTests.swift */; };
 		EEA20510EE858677A9CEA8F9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F10F40A7BFBFE638E3711D06 /* PrivacyInfo.xcprivacy */; };
 		F03F1F64D3334EEE939FE3F6 /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEDF52AA4BC089A403A21014 /* UsageStore.swift */; };
@@ -45,7 +45,6 @@
 /* Begin PBXFileReference section */
 		019FD25464C6CFAB43F6D73E /* UsageOrbApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageOrbApp.swift; sourceTree = "<group>"; };
 		0E84B286F60CA5EC88E44054 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
-		192F7DDEA9F259F0CFDD2308 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		2AA42AD17083F979068AEF28 /* APIKeyProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyProviders.swift; sourceTree = "<group>"; };
 		2CE50FF992356E45894A203B /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		4D58B728C047247A9033E43D /* RingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingState.swift; sourceTree = "<group>"; };
@@ -56,6 +55,7 @@
 		798B0D7A70CCF65746752450 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		86AEE4C7490C4F3376DD9A79 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		9676CD0F8142DFF2BF4BED0F /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
+		96C15725D50206F5F98B493F /* ProviderCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderCard.swift; sourceTree = "<group>"; };
 		A6624D655F2F1E58B4649772 /* ClaudeCodeProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeProvider.swift; sourceTree = "<group>"; };
 		B16050352481A2E44A507757 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		BDF5FA74B34DCB8ECF01D6F4 /* HistoryLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLogTests.swift; sourceTree = "<group>"; };
@@ -136,7 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				798B0D7A70CCF65746752450 /* DashboardView.swift */,
-				192F7DDEA9F259F0CFDD2308 /* PopoverView.swift */,
+				96C15725D50206F5F98B493F /* ProviderCard.swift */,
 				DDFB16F692B4517C5FAF1681 /* RingImage.swift */,
 				76B4B1B716EEC2CBB527E69D /* SettingsView.swift */,
 			);
@@ -291,7 +291,7 @@
 				5BBD8BAFD804F0A7590CE621 /* Format.swift in Sources */,
 				8A5D165EC76234EDAC14B47E /* HistoryStore.swift in Sources */,
 				786CD804368E5F5385049AD0 /* Keychain.swift in Sources */,
-				15C4CA6646EFE3E749F61DBB /* PopoverView.swift in Sources */,
+				A9690B238A59A0E17D4DBA4C /* ProviderCard.swift in Sources */,
 				4DF71282C9899DBCCB388715 /* RingImage.swift in Sources */,
 				1179AC66C96D1CDE5E377248 /* RingState.swift in Sources */,
 				0F08604FC06F2829D1404CE4 /* SampleProvider.swift in Sources */,

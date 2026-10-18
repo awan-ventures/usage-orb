@@ -11,12 +11,13 @@ final class RingStateTests: XCTestCase {
                     observedAt: now.addingTimeInterval(-observedAgo))
     }
 
-    private func compute(_ windows: [QuotaWindow], mode: RingMode = .mostUrgent) -> RingState {
-        RingState.compute(windows: windows, mode: mode, thresholds: .init(), refreshInterval: 300, now: now)
+    private func compute(_ windows: [QuotaWindow]) -> RingState {
+        RingState.compute(windows: windows, thresholds: .init(), refreshInterval: 300, now: now)
     }
 
     func testEmptyIsUnknown() {
         XCTAssertTrue(compute([]).isUnknown)
+        XCTAssertTrue(compute([]).accessibilityDescription(for: .codex).hasPrefix("Codex: usage unknown"))
     }
 
     func testMostUrgentPicksHighestFreshWindow() {
@@ -49,15 +50,6 @@ final class RingStateTests: XCTestCase {
         XCTAssertTrue(compute([window("reset", 99, resetsIn: -60)]).isUnknown)
     }
 
-    func testPinnedWindow() {
-        let windows = [window("a", 20), window("b", 95)]
-        guard case .value(_, let level, let picked, _) = compute(windows, mode: .pinned("a")) else { return XCTFail() }
-        XCTAssertEqual(picked.id, "a")
-        XCTAssertEqual(level, .normal)
-        XCTAssertTrue(compute(windows, mode: .pinned("missing")).isUnknown)
-        XCTAssertTrue(compute([window("a", 20, resetsIn: -1)], mode: .pinned("a")).isUnknown)
-    }
-
     func testThresholds() {
         let thresholds = RingThresholds(warning: 70, critical: 90)
         XCTAssertEqual(thresholds.level(for: 69.9), .normal)
@@ -67,12 +59,13 @@ final class RingStateTests: XCTestCase {
     }
 
     func testAccessibilityDescriptionNamesSourceAndFreshness() {
-        let text = compute([window("Weekly", 21, observedAgo: 7200)]).accessibilityDescription
+        let text = compute([window("Weekly", 21, observedAgo: 7200)]).accessibilityDescription(for: .claudeCode)
         XCTAssertTrue(text.contains("Claude Code Weekly: 21% used"), text)
         XCTAssertTrue(text.contains("may be out of date"), text)
     }
 }
 
 private extension RingState {
+    var isUnknown: Bool { if case .unknown = self { true } else { false } }
     var isStaleValue: Bool? { if case .value(_, _, _, let stale) = self { stale } else { nil } }
 }

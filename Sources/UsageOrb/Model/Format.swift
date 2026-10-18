@@ -26,6 +26,8 @@ enum Format {
         if currency == "credits" {
             return amount.formatted(.number.precision(.fractionLength(0...2))) + " credits"
         }
-        return amount.formatted(.currency(code: currency).precision(.fractionLength(2...4)))
+        // Show "$" rather than "US$" whatever the region, since every amount here is labelled.
+        let locale = currency == "USD" ? Locale(identifier: "en_US") : Locale.current
+        return amount.formatted(.currency(code: currency).locale(locale).precision(.fractionLength(2)))
     }
 }

@@ -3,8 +3,9 @@
 Read `README.md` and `docs/PLAN.md` before changing this repository.
 
 - Native macOS 14+ menu bar app in Swift, AppKit, SwiftUI and Swift Charts. Keep it dependency-free.
-- The ring is the product; the popover must work without the dashboard. Only subscription quota windows drive the ring. Never turn a balance or spend into a percentage.
-- Label every figure with its source (`DataSource`). Keep reported spend separate from estimates; don't add estimates without a label.
+- The rings are the product: one per provider, and the menu must work without the dashboard. Only quota windows or a real ceiling (an OpenRouter key limit) drive a ring. Never turn a balance or spend into a percentage.
+- The menu is a native `NSMenu` with SwiftUI cards in its items. Keep cards plain: name, bars, one footnote line. Put source details in tooltips.
+- Record every figure's source (`DataSource`) and show it on hover. Keep reported spend separate from estimates; don't add estimates without a label.
 - Each provider is a `UsageProvider` with a static, tested `parse` function. Parse leniently: undocumented payloads change.
 - No backend, analytics, browser-session scraping or secret logging. API keys live in the Keychain only. Never refresh another app's OAuth token.
 - Keep polling cheap: one timer, backoff on failure, nothing faster than once a minute.

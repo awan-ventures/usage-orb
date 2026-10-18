@@ -11,23 +11,11 @@ struct SettingsView: View {
                 ForEach(ProviderID.allCases) { ProviderSettings(provider: $0) }
             }
 
-            Section("Menu bar ring") {
-                Picker("Ring shows", selection: $settings.pinnedWindowID) {
-                    Text("Most used quota window").tag(String?.none)
-                    ForEach(store.enabledSnapshots.flatMap(\.windows)) { window in
-                        Text("\(window.provider.displayName) · \(window.name)").tag(String?.some(window.id))
-                    }
-                    if let pinned = settings.pinnedWindowID,
-                       !store.enabledSnapshots.flatMap(\.windows).contains(where: { $0.id == pinned }) {
-                        Text("\(pinned) (unavailable)").tag(String?.some(pinned))
-                    }
-                }
-                Text("Only subscription quota windows can drive the ring. Balances and spend have no fixed ceiling, so they stay in the list.")
-                    .font(.caption).foregroundStyle(.secondary)
+            Section("Menu bar") {
                 Stepper("Warning at \(Int(settings.warningPercent))%", value: $settings.warningPercent, in: 10...100, step: 5)
                 Stepper("Critical at \(Int(settings.criticalPercent))%", value: $settings.criticalPercent,
                         in: settings.warningPercent...100, step: 5)
-                Toggle("Show percentage next to the ring", isOn: $settings.showPercentInMenuBar)
+                Toggle("Show percentages", isOn: $settings.showPercentInMenuBar)
             }
 
             Section("General") {
@@ -43,14 +31,15 @@ struct SettingsView: View {
                 if let launchError { Text(launchError).font(.caption).foregroundStyle(.red) }
             }
 
-            Section("Privacy") {
-                Text("Usage Orb talks only to the providers you connect, has no server and sends no analytics. API keys are kept in your Keychain. History stays in ~/Library/Application Support/Usage Orb.")
-                    .font(.caption).foregroundStyle(.secondary)
+            Section {
+            } footer: {
+                Text("No server, no analytics. Keys stay in your Keychain; history stays on this Mac.")
+                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity)
             }
         }
         .formStyle(.grouped)
-        .frame(width: 520)
-        .frame(minHeight: 560)
+        .frame(width: 460)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

@@ -9,16 +9,18 @@ Updated 2026-10-18.
 - **Claude Code:** uses `GET https://api.anthropic.com/api/oauth/usage` with Claude Code's OAuth token and `anthropic-beta: oauth-2025-04-20`. Checked against a live Pro account on 2026-10-18: the response has a `limits` list (`kind`, `percent`, `resets_at`, `scope`) as well as the older flat `five_hour` / `seven_day` keys. Both are parsed. The token is never refreshed by Usage Orb.
 - **Codex:** reads `rate_limits` (`primary` / `secondary` with `used_percent`, `window_minutes`, `resets_at`, plus `credits` and `plan_type`) from `token_count` events in `~/.codex/sessions/**/*.jsonl`, following the `RateLimitSnapshot` struct in the Codex source. Not yet tested against a real Codex log on a Mac.
 - **DeepSeek:** documented `GET /user/balance`. **OpenRouter:** documented `GET /api/v1/key` (usage daily/weekly/monthly, limit remaining).
+- **One ring per provider** (2026-10-18, Adam), replacing the single "most urgent" ring and window pinning. Rings carry a monogram. OpenRouter gets one only for a key limit; DeepSeek never does.
+- **Native menu, not a popover** (2026-10-18, Adam asked for a simpler UI with CodexBar's glass look). Provider cards are SwiftUI views inside `NSMenuItem`s, so the system draws the menu material, and Liquid Glass on macOS 26. Source labels moved to tooltips.
 - **Persistence:** JSON files in Application Support rather than SwiftData or SQLite. History is throttled (unchanged values at most every 30 minutes) and pruned to 90 days.
 
 ## Done (local MVP)
 
-- [x] Menu bar ring with normal, warning, critical, stale and unknown states that differ in shape as well as colour; VoiceOver value and tooltip.
-- [x] Popover: per-provider windows with bars, reset countdowns, source labels, freshness, errors, and the last good reading after a failure. Pin a window by right-clicking.
+- [x] One menu bar ring per provider with normal, warning, critical, stale and unknown states that differ in shape as well as colour; VoiceOver value and tooltip.
+- [x] Native menu: a card per provider with bars, reset countdowns, errors, and the last good reading after a failure.
 - [x] Providers: Claude Code, Codex, DeepSeek, OpenRouter. Keychain for API keys.
 - [x] Polling every 5 minutes by default, backoff on failure, cached last readings.
 - [x] Dashboard: quota use, daily OpenRouter spend and balances over 24 h–90 d.
-- [x] Settings: providers, keys, ring mode, thresholds, refresh interval, percentage label, Open at login.
+- [x] Settings: providers, keys, thresholds, refresh interval, percentages, Open at login.
 - [x] Unit tests for parsing, ring selection and history. Sample mode for UI work.
 
 ## Next

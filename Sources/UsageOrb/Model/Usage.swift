@@ -14,8 +14,21 @@ enum ProviderID: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
+    /// Drawn inside the provider's menu bar ring.
+    var monogram: String {
+        switch self {
+        case .claudeCode: "C"
+        case .codex: "O"
+        case .deepSeek: "D"
+        case .openRouter: "R"
+        }
+    }
+
     /// Providers that authenticate with an API key the user pastes into Settings.
     var usesAPIKey: Bool { self == .deepSeek || self == .openRouter }
+
+    /// DeepSeek reports only a balance, which has no ceiling, so it never gets a ring.
+    var reportsQuota: Bool { self == .claudeCode || self == .codex }
 }
 
 /// Where a figure came from. Shown next to every value so an estimate never passes for a report.
@@ -40,14 +53,16 @@ struct QuotaWindow: Codable, Hashable, Identifiable, Sendable {
     /// 0–100. Values above 100 are kept as reported.
     var usedPercent: Double
     var resetsAt: Date?
+    /// Extra context shown under the bar, such as "$13.20 of $25 left".
+    var detail: String? = nil
     var source: DataSource
     /// When the provider reported this value (a log line's time, or the fetch time).
     var observedAt: Date
 }
 
-/// A money figure: a prepaid balance, reported spend, or a spend cap. Never shown as a ring percentage.
+/// A money figure: a prepaid balance or reported spend. Never shown as a percentage.
 struct MoneyFigure: Codable, Hashable, Identifiable, Sendable {
-    enum Kind: String, Codable, Sendable { case balance, spend, remainingLimit }
+    enum Kind: String, Codable, Sendable { case balance, spend }
 
     var id: String
     var provider: ProviderID

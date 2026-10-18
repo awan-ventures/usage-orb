@@ -53,9 +53,17 @@ final class UsageStore: ObservableObject {
         Task { await refreshDue(force: true) }
     }
 
-    var ring: RingState {
-        RingState.compute(windows: enabledSnapshots.flatMap(\.windows), mode: settings.ringMode,
-                          thresholds: settings.thresholds, refreshInterval: settings.refreshInterval, now: now)
+    func ring(for provider: ProviderID) -> RingState {
+        RingState.compute(windows: snapshots[provider]?.windows ?? [], thresholds: settings.thresholds,
+                          refreshInterval: settings.refreshInterval, now: now)
+    }
+
+    /// Enabled providers that get a menu bar ring: quota providers, plus any with a measured ceiling
+    /// (an OpenRouter key limit). Balance-only providers appear in the menu only.
+    var ringProviders: [ProviderID] {
+        ProviderID.allCases.filter { id in
+            settings.enabled.contains(id) && (id.reportsQuota || snapshots[id]?.windows.isEmpty == false)
+        }
     }
 
     var enabledSnapshots: [ProviderSnapshot] {

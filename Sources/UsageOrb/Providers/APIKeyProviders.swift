@@ -57,13 +57,16 @@ struct OpenRouterProvider: UsageProvider {
             snapshot.money.append(MoneyFigure(id: "openRouter.\(key)", provider: .openRouter, name: name, kind: kind,
                                               amount: amount, currency: "USD", source: .officialAPI, observedAt: now))
         }
-        add("usage_daily", "spendDaily", "Spend today (UTC)", .spend)
-        add("usage_weekly", "spendWeekly", "Spend this week (UTC)", .spend)
-        add("usage_monthly", "spendMonthly", "Spend this month (UTC)", .spend)
-        add("usage", "spendTotal", "Spend, all time", .spend)
-        if let limit = JSON.double(data["limit"]) {
-            let reset = (data["limit_reset"] as? String).map { " (resets \($0))" } ?? ""
-            add("limit_remaining", "limitRemaining", "Left of $\(Int(limit)) key limit\(reset)", .remainingLimit)
+        add("usage_daily", "spendDaily", "Spent today", .spend)
+        add("usage_monthly", "spendMonthly", "Spent this month", .spend)
+        // A key limit is a real ceiling, so it can be shown as a percentage.
+        if let limit = JSON.double(data["limit"]), limit > 0, let remaining = JSON.double(data["limit_remaining"]) {
+            let reset = (data["limit_reset"] as? String).map { ", resets \($0)" } ?? ""
+            snapshot.windows.append(QuotaWindow(
+                id: "openRouter.keyLimit", provider: .openRouter, name: "Key limit",
+                usedPercent: max(0, (limit - remaining) / limit * 100), resetsAt: nil,
+                detail: "\(Format.money(remaining, currency: "USD")) of \(Format.money(limit, currency: "USD")) left\(reset)",
+                source: .officialAPI, observedAt: now))
         }
         if data["is_free_tier"] as? Bool == true { snapshot.notes.append("Free tier") }
         return snapshot

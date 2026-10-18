@@ -29,9 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.store = store
         self.windows = windows
         store.start()
-        // For UI work and screenshots: USAGE_ORB_OPEN=popover, dashboard or settings.
+        // For UI work and screenshots: USAGE_ORB_OPEN=menu, dashboard or settings.
         switch ProcessInfo.processInfo.environment["USAGE_ORB_OPEN"] {
-        case "popover": DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.statusItem?.showPopover() }
+        case "menu": DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.statusItem?.openMenu() }
         case "dashboard": windows.showDashboard()
         case "settings": windows.showSettings()
         default: break
