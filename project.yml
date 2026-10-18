@@ -1,0 +1,62 @@
+name: UsageOrb
+options:
+  bundleIdPrefix: com.madebyawan
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  UsageOrb:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/UsageOrb
+      - Resources/Assets.xcassets
+      - Resources/PrivacyInfo.xcprivacy
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Usage Orb
+        CFBundleName: Usage Orb
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.developer-tools
+        LSUIElement: true
+        NSHighResolutionCapable: true
+        NSHumanReadableCopyright: Copyright © 2026 Adam Wan
+    settings:
+      base:
+        PRODUCT_NAME: UsageOrb
+        PRODUCT_BUNDLE_IDENTIFIER: com.madebyawan.UsageOrb
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  UsageOrbTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/UsageOrbTests
+    dependencies:
+      - target: UsageOrb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.madebyawan.UsageOrbTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/UsageOrb.app/Contents/MacOS/UsageOrb"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  UsageOrb:
+    build:
+      targets:
+        UsageOrb: all
+        UsageOrbTests: [test]
+    test:
+      targets:
+        - UsageOrbTests
+      gatherCoverageData: true
