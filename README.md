@@ -4,7 +4,7 @@
 
 A small ring in your macOS menu bar for each AI coding tool, showing how much of its quota you've used.
 
-Click any ring for a native menu with Claude Code and Codex quota windows and reset times, an OpenRouter key limit, and DeepSeek and OpenRouter spend. A dashboard keeps the history. No account, no server, no analytics.
+Click a ring for that provider's native menu, or open All Providers for Claude Code and Codex quota windows and reset times, an OpenRouter key limit, and DeepSeek and OpenRouter spend. A dashboard keeps the history. No account, no server, no analytics.
 
 [MIT license](LICENSE) · [Privacy](docs/PRIVACY.md) · [Plan](docs/PLAN.md) · [Testing](docs/TESTING.md)
 
@@ -63,7 +63,7 @@ USAGE_ORB_SAMPLE=1 USAGE_ORB_OPEN=menu build/Build/Products/Debug/UsageOrb.app/C
 
 ## Use
 
-- **Click** any ring for the menu: one card per provider, then Add Provider, Refresh (⌘R), Dashboard (⌘D), Settings (⌘,) and Quit.
+- **Click** a ring for its provider's card, then All Providers (every card), Add Provider, Refresh (⌘R), Dashboard (⌘D), Settings (⌘,) and Quit.
 - **Settings** turns providers on and off, stores API keys in the Keychain, and sets the warning and critical thresholds, percentages next to the rings, the refresh interval (5 minutes by default) and Open at login.
 - **Dashboard** charts quota use, daily OpenRouter spend and balances over a day to 90 days, from history kept on your Mac.
 

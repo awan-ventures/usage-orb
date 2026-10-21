@@ -2,11 +2,13 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// One menu bar ring per provider. Clicking any ring opens the same native menu, so it gets the system's
-/// menu material (and Liquid Glass on macOS 26) for free.
+/// One menu bar ring per provider. Each ring's native menu leads with that provider's card, with every card under
+/// All Providers. Native menus get the system's material (and Liquid Glass on macOS 26) for free.
 @MainActor
 final class StatusItemController: NSObject, NSMenuDelegate {
     private var items: [String: NSStatusItem] = [:]
+    /// The provider each ring's menu belongs to; the fallback ring has none and lists every provider.
+    private var menuProviders: [ObjectIdentifier: ProviderID] = [:]
     private let store: UsageStore
     private let settings: AppSettings
     private let windows: WindowPresenter
@@ -30,6 +32,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let wanted: [ProviderID?] = store.ringProviders.isEmpty ? [nil] : store.ringProviders
         let keys = wanted.map { $0?.rawValue ?? "app" }
         for (key, item) in items where !keys.contains(key) {
+            if let menu = item.menu { menuProviders[ObjectIdentifier(menu)] = nil }
             NSStatusBar.system.removeStatusItem(item)
             items[key] = nil
         }
@@ -47,6 +50,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         item.button?.imagePosition = .imageLeading
         let menu = NSMenu()
         menu.delegate = self
+        menuProviders[ObjectIdentifier(menu)] = ProviderID(rawValue: key)
         item.menu = menu
         return item
     }
@@ -79,11 +83,18 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         let enabled = ProviderID.allCases.filter(settings.enabled.contains)
-        for (index, provider) in enabled.enumerated() {
-            if index > 0 { menu.addItem(.separator()) }
-            menu.addItem(cardItem(provider))
+        if let own = menuProviders[ObjectIdentifier(menu)], enabled.contains(own) {
+            menu.addItem(cardItem(own))
+            menu.addItem(.separator())
+            if enabled.count > 1 {
+                let all = NSMenu()
+                addCards(enabled, to: all)
+                menu.addItem(withTitle: "All Providers", action: nil, keyEquivalent: "").submenu = all
+            }
+        } else if !enabled.isEmpty {
+            addCards(enabled, to: menu)
+            menu.addItem(.separator())
         }
-        if !enabled.isEmpty { menu.addItem(.separator()) }
 
         let available = ProviderID.allCases.filter { !settings.enabled.contains($0) }
         if !available.isEmpty {
@@ -105,6 +116,13 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(withTitle: "Quit Usage Orb", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         Task { await store.refreshDue(force: false) }
+    }
+
+    private func addCards(_ providers: [ProviderID], to menu: NSMenu) {
+        for (index, provider) in providers.enumerated() {
+            if index > 0 { menu.addItem(.separator()) }
+            menu.addItem(cardItem(provider))
+        }
     }
 
     private func cardItem(_ provider: ProviderID) -> NSMenuItem {
