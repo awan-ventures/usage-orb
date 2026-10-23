@@ -11,17 +11,40 @@ struct ClaudeCodeProvider: UsageProvider {
     static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")!
 
     func fetch(now: Date) async throws -> ProviderSnapshot {
-        let token = try Self.readAccessToken(now: now)
-        let object = try await HTTP.getJSON(Self.endpoint, headers: [
+        let token = try Self.cachedAccessToken(now: now)
+        do {
+            return try await Self.fetch(token: token, now: now)
+        } catch let error as ProviderError where error.kind == .auth {
+            // Rejected: Claude Code may have renewed its sign-in since. Read it again and retry once.
+            Self.tokenCache.clear()
+            let fresh = try Self.cachedAccessToken(now: now)
+            guard fresh != token else { throw error }
+            return try await Self.fetch(token: fresh, now: now)
+        }
+    }
+
+    private static func fetch(token: String, now: Date) async throws -> ProviderSnapshot {
+        let object = try await HTTP.getJSON(endpoint, headers: [
             "Authorization": "Bearer \(token)",
             "anthropic-beta": "oauth-2025-04-20",
         ], service: "Anthropic")
-        return try Self.parse(object, now: now)
+        return try parse(object, now: now)
     }
 
     // MARK: Credentials
 
-    static func readAccessToken(now: Date) throws -> String {
+    /// Keeps the token in memory until it expires or Anthropic rejects it, so the Keychain is read rarely
+    /// and macOS doesn't ask on every refresh.
+    private static let tokenCache = TokenCache()
+
+    private static func cachedAccessToken(now: Date) throws -> String {
+        if let token = tokenCache.token(now: now) { return token }
+        let (token, expiry) = try readAccessToken(now: now)
+        tokenCache.store(token, expiry: expiry)
+        return token
+    }
+
+    static func readAccessToken(now: Date) throws -> (token: String, expiry: Date?) {
         let data = Keychain.readOtherApp(service: "Claude Code-credentials") ?? credentialsFile()
         guard let data else {
             throw ProviderError.notConfigured("No Claude Code sign-in found. Sign in with `claude`, then refresh.")
@@ -31,10 +54,11 @@ struct ClaudeCodeProvider: UsageProvider {
               let token = oauth["accessToken"] as? String, !token.isEmpty else {
             throw ProviderError.notConfigured("Claude Code is signed in with an API key, not a subscription. There's no quota to show.")
         }
-        if let expiry = JSON.date(oauth["expiresAt"]), expiry <= now {
+        let expiry = JSON.date(oauth["expiresAt"])
+        if let expiry, expiry <= now {
             throw ProviderError.auth("Claude Code's sign-in has expired. Run Claude Code once to renew it, then refresh.")
         }
-        return token
+        return (token, expiry)
     }
 
     private static func credentialsFile() -> Data? {
@@ -112,5 +136,27 @@ struct ClaudeCodeProvider: UsageProvider {
             }
         }
         return nil
+    }
+}
+
+/// The Claude Code token held between refreshes. Providers fetch concurrently, so access is locked.
+private final class TokenCache: @unchecked Sendable {
+    private let lock = NSLock()
+    private var token: String?
+    private var expiry: Date?
+
+    func token(now: Date) -> String? {
+        lock.withLock {
+            if let expiry, expiry <= now { token = nil }
+            return token
+        }
+    }
+
+    func store(_ token: String, expiry: Date?) {
+        lock.withLock { (self.token, self.expiry) = (token, expiry) }
+    }
+
+    func clear() {
+        lock.withLock { (token, expiry) = (nil, nil) }
     }
 }
